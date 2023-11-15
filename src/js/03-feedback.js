@@ -9,30 +9,29 @@ const form = document.querySelector('.feedback-form');
 form.addEventListener('input', throttle(onInputData, 500));
 form.addEventListener('submit', onFormSubmit);
 
-let dataForm = JSON.parse(localStorage.getItem(LOCAL_KEY)) || {};
-const { email, message } = form.elements;
-reloadPage();
+let dataForm = {};
 
 function onInputData(e) {
-  dataForm = { email: email.value, message: message.value };
+  dataForm[e.target.name] = e.target.value.trim();
   localStorage.setItem(LOCAL_KEY, JSON.stringify(dataForm));
 }
 
-function reloadPage() {
-  if (dataForm) {
-    email.value = dataForm.email || '';
-    message.value = dataForm.message || '';
+function refreshForm() {
+  try {
+    const savedData = localStorage.getItem(LOCAL_KEY);
+    if (!savedData) return;
+    dataForm = JSON.parse(savedData);
+    Object.entries(dataForm).forEach(([key, val]) => {
+      form.elements[key].value = val;
+    });
+  } catch ({ message }) {
+    console.log(message);
   }
 }
+refreshForm();
 
 function onFormSubmit(e) {
   e.preventDefault();
-  console.log({ email: email.value, message: message.value });
-
-  if (email.value === '' || message.value === '') {
-    return alert('Please fill in all the fields!');
-  }
-
   localStorage.removeItem(LOCAL_KEY);
   e.currentTarget.reset();
   dataForm = {};
